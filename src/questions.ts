@@ -33,10 +33,12 @@ export const QUESTIONS: Question[] = [
   { id: 24, text: '信頼関係を長く育てることを大切にする', axis: 'stability' },
 ];
 
+/** 表示ラベル（インデックス = 点数: 0〜3） */
 export const ANSWER_LABELS = [
-  '全く当てはまらない',
-  'あまり当てはまらない',
-  'どちらともいえない',
-  'やや当てはまる',
-  'とても当てはまる',
+  '当てはまらない',       // 0点
+  'あまり当てはまらない', // 1点
+  '少し当てはまる',       // 2点
+  'とても当てはまる',     // 3点
 ] as const;
+
+export const ANSWER_SCORES = [0, 1, 2, 3] as const;

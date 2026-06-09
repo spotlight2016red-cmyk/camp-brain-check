@@ -25,6 +25,20 @@ export type BrainTypeId =
   | 'empathy-stability'
   | 'empathy-structure';
 
+export type DiagnosisTypeId = BrainTypeId | 'undetermined';
+
+export interface DiagnosisResult {
+  id: DiagnosisTypeId;
+  typeName: string;
+  avatarName: string;
+  description: string;
+  strongEnvironment?: string;
+  fatiguePattern?: string;
+  deepDivePoint?: string;
+  axes?: [AxisKey, AxisKey];
+  isUndetermined: boolean;
+}
+
 export type AxisScores = Record<AxisKey, number>;
 
 export const AXIS_ORDER: AxisKey[] = [

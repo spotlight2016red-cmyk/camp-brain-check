@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, Brain, Camera, MessageCircle } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, ArrowRight, Brain, ChevronDown } from 'lucide-react';
 import { QUESTIONS, ANSWER_LABELS } from './questions';
 import { calculateAxisScores, determineResult, getMaxScorePerAxis } from './scoring';
 import { AXES, AXIS_ORDER } from './types';
 import { CAMP_LP_URL, LINE_URL } from './config';
+import { getAvatarImageUrl } from './avatarImages';
+import { getTypeCardImageUrl } from './typeCardImages';
 
 type Step = 'intro' | 'quiz' | 'result';
 
@@ -17,6 +19,8 @@ export function BrainCheckClient() {
   const axisScores = calculateAxisScores(answers);
   const result = determineResult(axisScores);
   const maxScore = getMaxScorePerAxis();
+  const typeCardUrl = getTypeCardImageUrl(result.id);
+  const avatarUrl = getAvatarImageUrl(result.id);
 
   const handleAnswer = (value: number) => {
     if (!currentQuestion) return;
@@ -71,7 +75,7 @@ export function BrainCheckClient() {
               <span className="text-[#FF9966]">事前簡易診断</span>
             </h1>
             <p className="text-gray-600 leading-relaxed text-left bg-white rounded-2xl p-6 shadow-md border-2 border-[#FFE5D0]">
-              お申し込み確定後、LINEでお送りしたリンクからご利用ください。
+              合宿にお申し込みいただいた方向けの、合宿前の簡易診断です。
               24問の回答から、あなたの考え方・反応・力が出やすい環境の傾向を仮で見える化します。
             </p>
             <ul className="text-left text-gray-600 space-y-2 text-sm bg-white/60 rounded-xl p-5">
@@ -101,9 +105,9 @@ export function BrainCheckClient() {
               {ANSWER_LABELS.map((label, index) => (
                 <button
                   key={label}
-                  onClick={() => handleAnswer(index + 1)}
+                  onClick={() => handleAnswer(index)}
                   className={`w-full text-left p-4 rounded-2xl border-2 transition-all ${
-                    answers[currentQuestion.id] === index + 1
+                    answers[currentQuestion.id] === index
                       ? 'border-[#FF9966] bg-[#FFF5EB] shadow-md'
                       : 'border-gray-100 bg-white hover:border-[#FFE5D0]'
                   }`}
@@ -125,70 +129,126 @@ export function BrainCheckClient() {
 
         {step === 'result' && (
           <div className="space-y-8" id="diagnosis-result">
-            <div className="text-center">
-              <p className="text-sm text-[#FF9966] font-medium mb-2">あなたの仮タイプ</p>
-              <h1 className="text-2xl md:text-3xl text-gray-800 font-bold">{result.typeName}</h1>
-              <p className="text-xl text-[#FF9966] font-medium mt-1">{result.avatarName}</p>
-            </div>
-
-            <div className="bg-white rounded-3xl shadow-xl p-8 border-4 border-[#FFE5D0] text-center">
-              <img src={result.avatarImage} alt={result.avatarName} className="w-40 h-40 mx-auto mb-4" />
-              <p className="text-gray-700 leading-relaxed text-left">{result.description}</p>
-            </div>
-
-            <ResultBlock title="力が出やすい環境" content={result.strongEnvironment} />
-            <ResultBlock title="疲れやすいパターン" content={result.fatiguePattern} />
-            <ResultBlock title="合宿で深掘りしたいポイント" content={result.deepDivePoint} highlight />
-
-            <div className="bg-white rounded-3xl shadow-lg p-6 border-2 border-gray-100">
-              <h3 className="text-lg font-medium text-gray-800 mb-4 text-center">6軸スコア</h3>
-              <div className="space-y-4">
-                {AXIS_ORDER.map((key) => (
-                  <div key={key}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{AXES[key].label}</span>
-                      <span className="text-gray-500">{axisScores[key]} / {maxScore}</span>
-                    </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${(axisScores[key] / maxScore) * 100}%`,
-                          backgroundColor: AXES[key].color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+            <section
+              id="type-card-screenshot"
+              className="bg-white rounded-3xl shadow-xl p-6 md:p-8 border-4 border-[#FFE5D0]"
+            >
+              <h2 className="text-xl md:text-2xl font-bold text-center text-gray-800 mb-6">
+                {result.isUndetermined ? 'あなたの診断結果' : 'あなたのタイプカード'}
+              </h2>
+              {typeCardUrl ? (
+                <img
+                  src={typeCardUrl}
+                  alt={`${result.typeName}のタイプカード`}
+                  className="w-full max-w-lg mx-auto rounded-2xl shadow-md"
+                />
+              ) : (
+                <div className="w-full max-w-lg mx-auto rounded-2xl border-2 border-dashed border-[#FFE5D0] bg-[#FFF5EB]/60 px-6 py-12 text-center">
+                  <Brain className="w-12 h-12 text-[#FF9966] mx-auto mb-3" />
+                  <p className="text-gray-700 text-sm leading-relaxed">
+                    今回は特定のタイプカードは表示されません。
+                    <br />
+                    下の結果画面をスクショして保存してください。
+                  </p>
+                </div>
+              )}
+              <div className="mt-6 space-y-3 text-center">
+                <p className="text-gray-800 font-medium">
+                  {typeCardUrl
+                    ? 'このカードをスクショして保存してください'
+                    : 'この画面をスクショして保存してください'}
+                </p>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  可能であればLINEで結果を送ってください
+                </p>
+                <a
+                  href={LINE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-[#06C755] hover:bg-[#05b34c] text-white px-6 py-3 rounded-full text-sm font-medium"
+                >
+                  LINEで結果を送る
+                  <ArrowRight className="w-4 h-4" />
+                </a>
               </div>
-            </div>
+            </section>
 
-            <InfoCard
-              icon={<Camera className="w-6 h-6 text-[#66BB6A]" />}
-              title="結果画面のスクショ保存"
-              className="bg-[#E8F5E9] border-[#C8E6C9]"
-            >
-              この画面をスクリーンショットで保存しておくと、合宿当日の振り返りに役立ちます。
-            </InfoCard>
+            <section className="bg-white rounded-2xl p-5 border-2 border-[#FFE5D0] shadow-sm">
+              <p className="text-sm text-[#FF9966] font-medium text-center mb-4">あなたの仮タイプ</p>
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.1)] ring-2 ring-[#FFE5D0]/60 bg-[#FFF5EB] flex items-center justify-center">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={result.avatarName}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : (
+                    <Brain className="w-9 h-9 text-[#FF9966]" aria-hidden />
+                  )}
+                </div>
+                <div className="min-w-0 text-left">
+                  <h2 className="text-lg font-bold text-gray-800 leading-snug">{result.typeName}</h2>
+                  <p className="text-[#FF9966] font-medium text-sm mt-0.5">{result.avatarName}</p>
+                  <p className="text-gray-600 text-sm leading-relaxed mt-2">{result.description}</p>
+                </div>
+              </div>
+            </section>
 
-            <InfoCard
-              icon={<MessageCircle className="w-6 h-6 text-[#42A5F5]" />}
-              title="LINEで事前送付"
-              className="bg-[#E3F2FD] border-[#BBDEFB]"
-            >
-              <p className="text-sm text-gray-600 mb-3">
-                診断結果のスクリーンショットを、合宿事務局のLINEに送ってください。
-              </p>
-              <a
-                href={LINE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#06C755] hover:bg-[#05b34c] text-white px-5 py-2.5 rounded-full text-sm font-medium"
-              >
-                LINEで結果を送る
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </InfoCard>
+            <details className="group bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
+              <summary className="flex items-center justify-between gap-3 px-5 py-4 cursor-pointer list-none font-medium text-gray-800 select-none [&::-webkit-details-marker]:hidden">
+                詳しく知りたい方へ
+                <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
+                {!result.isUndetermined && (
+                  <>
+                    <ResultBlock
+                      title="力が出やすい環境"
+                      subtitle="こういう時に能力を発揮しやすい"
+                      content={result.strongEnvironment!}
+                    />
+                    <ResultBlock
+                      title="疲れやすいパターン"
+                      subtitle="こういう時に失敗しやすい"
+                      content={result.fatiguePattern!}
+                    />
+                    <ResultBlock
+                      title="合宿で深掘りしたいポイント"
+                      content={result.deepDivePoint!}
+                      highlight
+                    />
+                  </>
+                )}
+                {result.isUndetermined && (
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    今回はタイプの詳細説明は表示していません。6軸スコアを参考に、合宿で一緒に探っていきましょう。
+                  </p>
+                )}
+                <div className="rounded-2xl p-5 border-2 bg-white border-gray-100">
+                  <h3 className="font-medium text-gray-800 mb-4">6軸スコア</h3>
+                  <div className="space-y-4">
+                    {AXIS_ORDER.map((key) => (
+                      <div key={key}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{AXES[key].label}</span>
+                          <span className="text-gray-500">{axisScores[key]} / {maxScore}</span>
+                        </div>
+                        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${(axisScores[key] / maxScore) * 100}%`,
+                              backgroundColor: AXES[key].color,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </details>
 
             <p className="text-xs text-gray-500 text-center leading-relaxed px-4">
               ※ 診断結果はあなたを決めつけるものではありません。
@@ -218,43 +278,25 @@ export function BrainCheckClient() {
 
 function ResultBlock({
   title,
+  subtitle,
   content,
   highlight = false,
 }: {
   title: string;
+  subtitle?: string;
   content: string;
   highlight?: boolean;
 }) {
   return (
     <div
       className={`rounded-2xl p-5 border-2 ${
-        highlight ? 'bg-gradient-to-r from-[#FFF5EB] to-[#FFE5D0] border-[#FF9966]' : 'bg-white border-gray-100 shadow-sm'
+        highlight ? 'bg-gradient-to-r from-[#FFF5EB] to-[#FFE5D0] border-[#FF9966]' : 'bg-white border-gray-100'
       }`}
     >
-      <h3 className="font-medium text-gray-800 mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm leading-relaxed">{content}</p>
+      <h3 className="font-medium text-gray-800">{title}</h3>
+      {subtitle && <p className="text-xs text-[#FF9966] mt-1">{subtitle}</p>}
+      <p className="text-gray-600 text-sm leading-relaxed mt-2">{content}</p>
     </div>
   );
 }
 
-function InfoCard({
-  icon,
-  title,
-  className,
-  children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  className: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className={`rounded-2xl p-5 border-2 flex gap-3 ${className}`}>
-      <div className="flex-shrink-0 mt-0.5">{icon}</div>
-      <div>
-        <h3 className="font-medium text-gray-800 mb-1">{title}</h3>
-        <div className="text-sm text-gray-600 leading-relaxed">{children}</div>
-      </div>
-    </div>
-  );
-}
