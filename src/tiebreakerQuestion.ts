@@ -1,5 +1,6 @@
 import type { BrainTypeId } from './types';
 
+/** 決め手質問 Ver.1.1 */
 export const TIEBREAKER_QUESTION_TEXT = '最後に、今の自分に一番近いものを選ぶなら？';
 
 export const TIEBREAKER_OPTIONS: { label: string; typeId: BrainTypeId }[] = [
