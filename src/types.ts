@@ -39,6 +39,12 @@ export interface DiagnosisResult {
   isUndetermined: boolean;
 }
 
+export interface DiagnosisOutcome {
+  result: DiagnosisResult;
+  /** 6軸結果を優先し、決め手が別タイプだった場合の補足 */
+  tiebreakerNote?: string;
+}
+
 export type AxisScores = Record<AxisKey, number>;
 
 export const AXIS_ORDER: AxisKey[] = [

@@ -1,23 +1,34 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Brain, ChevronDown } from 'lucide-react';
 import { QUESTIONS, ANSWER_LABELS } from './questions';
-import { calculateAxisScores, determineResult, getMaxScorePerAxis } from './scoring';
+import { calculateAxisScores, determineOutcome, getMaxScorePerAxis } from './scoring';
 import { AXES, AXIS_ORDER } from './types';
 import { CAMP_LP_URL, LINE_URL } from './config';
 import { getAvatarImageUrl } from './avatarImages';
 import { getTypeCardImageUrl } from './typeCardImages';
+import { TIEBREAKER_OPTIONS, TIEBREAKER_QUESTION_TEXT } from './tiebreakerQuestion';
+import type { BrainTypeId } from './types';
 
-type Step = 'intro' | 'quiz' | 'result';
+type Step = 'intro' | 'quiz' | 'tiebreaker' | 'result';
+
+const TOTAL_STEPS = QUESTIONS.length + 1;
 
 export function BrainCheckClient() {
   const [step, setStep] = useState<Step>('intro');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [tiebreakerTypeId, setTiebreakerTypeId] = useState<BrainTypeId | null>(null);
 
   const currentQuestion = QUESTIONS[currentIndex];
-  const progress = ((currentIndex + (step === 'result' ? 1 : 0)) / QUESTIONS.length) * 100;
+  const quizStep =
+    step === 'quiz' ? currentIndex + 1 : step === 'tiebreaker' ? QUESTIONS.length + 1 : TOTAL_STEPS;
+  const progress = (quizStep / TOTAL_STEPS) * 100;
   const axisScores = calculateAxisScores(answers);
-  const result = determineResult(axisScores);
+  const { result, tiebreakerNote } = determineOutcome(
+    axisScores,
+    answers,
+    tiebreakerTypeId ?? undefined,
+  );
   const maxScore = getMaxScorePerAxis();
   const typeCardUrl = getTypeCardImageUrl(result.id);
   const avatarUrl = getAvatarImageUrl(result.id);
@@ -28,14 +39,20 @@ export function BrainCheckClient() {
     if (currentIndex < QUESTIONS.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      setStep('result');
+      setStep('tiebreaker');
     }
+  };
+
+  const handleTiebreakerAnswer = (typeId: BrainTypeId) => {
+    setTiebreakerTypeId(typeId);
+    setStep('result');
   };
 
   const handleRestart = () => {
     setStep('intro');
     setCurrentIndex(0);
     setAnswers({});
+    setTiebreakerTypeId(null);
   };
 
   return (
@@ -54,7 +71,7 @@ export function BrainCheckClient() {
             合宿前・簡易診断
           </div>
         </div>
-        {step === 'quiz' && (
+        {(step === 'quiz' || step === 'tiebreaker') && (
           <div className="h-1.5 bg-[#FFE5D0]">
             <div
               className="h-full bg-gradient-to-r from-[#FF9966] to-[#FFB366] transition-all duration-300"
@@ -68,7 +85,7 @@ export function BrainCheckClient() {
         {step === 'intro' && (
           <div className="text-center space-y-8">
             <div className="inline-flex items-center gap-2 bg-[#FFE5D0] px-4 py-2 rounded-full text-sm text-gray-700">
-              全24問・約5分・ログイン不要
+              全24問+決め手1問・約5分・ログイン不要
             </div>
             <h1 className="text-3xl md:text-4xl text-gray-800 font-bold leading-tight">
               脳内アップデート合宿<br />
@@ -93,10 +110,41 @@ export function BrainCheckClient() {
           </div>
         )}
 
+        {step === 'tiebreaker' && (
+          <div className="space-y-8">
+            <p className="text-center text-sm text-[#FF9966] font-medium">
+              決め手の質問 / {TOTAL_STEPS}
+            </p>
+            <h2 className="text-xl md:text-2xl text-gray-800 text-center leading-relaxed font-medium">
+              {TIEBREAKER_QUESTION_TEXT}
+            </h2>
+            <p className="text-center text-sm text-gray-500">
+              6軸の結果が近いときの補助判定です。いま一番しっくりくるものを選んでください。
+            </p>
+            <div className="space-y-3">
+              {TIEBREAKER_OPTIONS.map((option) => (
+                <button
+                  key={option.typeId}
+                  onClick={() => handleTiebreakerAnswer(option.typeId)}
+                  className="w-full text-left p-4 rounded-2xl border-2 border-gray-100 bg-white hover:border-[#FFE5D0] hover:bg-[#FFF5EB] transition-all"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setStep('quiz')}
+              className="text-gray-500 hover:text-gray-700 text-sm mx-auto block"
+            >
+              ← 前の質問に戻る
+            </button>
+          </div>
+        )}
+
         {step === 'quiz' && currentQuestion && (
           <div className="space-y-8">
             <p className="text-center text-sm text-[#FF9966] font-medium">
-              質問 {currentIndex + 1} / {QUESTIONS.length}
+              質問 {currentIndex + 1} / {TOTAL_STEPS}
             </p>
             <h2 className="text-xl md:text-2xl text-gray-800 text-center leading-relaxed font-medium">
               {currentQuestion.text}
@@ -191,6 +239,11 @@ export function BrainCheckClient() {
                   <h2 className="text-lg font-bold text-gray-800 leading-snug">{result.typeName}</h2>
                   <p className="text-[#FF9966] font-medium text-sm mt-0.5">{result.avatarName}</p>
                   <p className="text-gray-600 text-sm leading-relaxed mt-2">{result.description}</p>
+                  {tiebreakerNote && (
+                    <p className="text-gray-500 text-xs leading-relaxed mt-3 pt-3 border-t border-[#FFE5D0]">
+                      {tiebreakerNote}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
