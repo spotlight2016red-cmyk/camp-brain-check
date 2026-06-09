@@ -41,8 +41,8 @@ export interface DiagnosisResult {
 
 export interface DiagnosisOutcome {
   result: DiagnosisResult;
-  /** 6軸結果を優先し、決め手が別タイプだった場合の補足 */
-  tiebreakerNote?: string;
+  /** 決め手質問で選ばれたサブタイプ（メインと異なる場合のみ） */
+  subTypeName?: string;
 }
 
 export type AxisScores = Record<AxisKey, number>;

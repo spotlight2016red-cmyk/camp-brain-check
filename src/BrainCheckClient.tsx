@@ -24,7 +24,7 @@ export function BrainCheckClient() {
     step === 'quiz' ? currentIndex + 1 : step === 'tiebreaker' ? QUESTIONS.length + 1 : TOTAL_STEPS;
   const progress = (quizStep / TOTAL_STEPS) * 100;
   const axisScores = calculateAxisScores(answers);
-  const { result, tiebreakerNote } = determineOutcome(
+  const { result, subTypeName } = determineOutcome(
     axisScores,
     answers,
     tiebreakerTypeId ?? undefined,
@@ -236,14 +236,28 @@ export function BrainCheckClient() {
                   )}
                 </div>
                 <div className="min-w-0 text-left">
-                  <h2 className="text-lg font-bold text-gray-800 leading-snug">{result.typeName}</h2>
+                  {subTypeName ? (
+                    <div className="space-y-1">
+                      <p className="text-gray-800 leading-snug">
+                        <span className="text-gray-500 text-xs font-medium">メインタイプ：</span>
+                        <span className="font-bold">{result.typeName}</span>
+                      </p>
+                      <p className="text-gray-700 leading-snug">
+                        <span className="text-gray-500 text-xs font-medium">サブタイプ：</span>
+                        {subTypeName}
+                      </p>
+                      <p className="text-gray-500 text-xs leading-relaxed pt-1">
+                        サブ傾向は、すでに使えている補助的な力として表れる場合もあれば、これから育てたい願いとして表れる場合もあります。
+                      </p>
+                      <p className="text-gray-400 text-[11px] leading-relaxed">
+                        合宿では、このズレも手がかりにしながら、自分のクセをどう強みに変えていくかを深めていきます。
+                      </p>
+                    </div>
+                  ) : (
+                    <h2 className="text-lg font-bold text-gray-800 leading-snug">{result.typeName}</h2>
+                  )}
                   <p className="text-[#FF9966] font-medium text-sm mt-0.5">{result.avatarName}</p>
                   <p className="text-gray-600 text-sm leading-relaxed mt-2">{result.description}</p>
-                  {tiebreakerNote && (
-                    <p className="text-gray-500 text-xs leading-relaxed mt-3 pt-3 border-t border-[#FFE5D0]">
-                      {tiebreakerNote}
-                    </p>
-                  )}
                 </div>
               </div>
             </section>

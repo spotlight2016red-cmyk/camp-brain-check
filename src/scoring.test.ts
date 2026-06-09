@@ -32,7 +32,7 @@ function runCase(
   console.log(`\n${name}`);
   console.log('scores:', scores);
   console.log('type:', outcome.result.typeName, `(${outcome.result.id})`);
-  if (outcome.tiebreakerNote) console.log('note:', outcome.tiebreakerNote);
+  if (outcome.subTypeName) console.log('sub:', outcome.subTypeName);
   return { scores, outcome, answers };
 }
 
@@ -129,8 +129,8 @@ if (clearWithDifferentTiebreaker.outcome.result.id !== 'structure-stability') {
   process.exit(1);
 }
 
-if (!clearWithDifferentTiebreaker.outcome.tiebreakerNote?.includes('共感伴走タイプ')) {
-  console.error('FAIL: expected tiebreaker note for clear but different choice');
+if (clearWithDifferentTiebreaker.outcome.subTypeName !== '共感伴走タイプ') {
+  console.error('FAIL: expected sub type for clear but different choice');
   process.exit(1);
 }
 
@@ -153,8 +153,8 @@ if (intuitionDominantWithTiebreaker.outcome.result.id !== 'intuition-expression'
   process.exit(1);
 }
 
-if (!intuitionDominantWithTiebreaker.outcome.tiebreakerNote?.includes('場づくり調和タイプ')) {
-  console.error('FAIL: expected tiebreaker note for out-of-candidate choice');
+if (intuitionDominantWithTiebreaker.outcome.subTypeName !== '場づくり調和タイプ') {
+  console.error('FAIL: expected sub type for out-of-candidate choice');
   process.exit(1);
 }
 

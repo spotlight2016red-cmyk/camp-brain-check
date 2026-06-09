@@ -150,8 +150,12 @@ function toDiagnosisResult(type: TypeResult): DiagnosisResult {
   };
 }
 
-function buildTiebreakerNote(tiebreakerType: TypeResult): string {
-  return `最後の選択では${tiebreakerType.typeName}の要素も見られます`;
+function subTypeNameIfDifferent(
+  mainType: TypeResult,
+  tiebreakerType: TypeResult,
+): string | undefined {
+  if (tiebreakerType.id === mainType.id) return undefined;
+  return tiebreakerType.typeName;
 }
 
 /** スコア上の候補タイプ（同点・僅差・複数候補時に決め手で選べる範囲） */
@@ -190,10 +194,10 @@ export function determineOutcome(
 
   if (!undetermined && clear) {
     const result = toDiagnosisResult(scoreType);
-    if (tiebreakerType && tiebreakerType.id !== scoreType.id) {
-      return { result, tiebreakerNote: buildTiebreakerNote(tiebreakerType) };
-    }
-    return { result };
+    const subTypeName = tiebreakerType
+      ? subTypeNameIfDifferent(scoreType, tiebreakerType)
+      : undefined;
+    return subTypeName ? { result, subTypeName } : { result };
   }
 
   if (undetermined) {
@@ -209,10 +213,10 @@ export function determineOutcome(
   }
 
   const result = toDiagnosisResult(scoreType);
-  if (tiebreakerType && tiebreakerType.id !== scoreType.id) {
-    return { result, tiebreakerNote: buildTiebreakerNote(tiebreakerType) };
-  }
-  return { result };
+  const subTypeName = tiebreakerType
+    ? subTypeNameIfDifferent(scoreType, tiebreakerType)
+    : undefined;
+  return subTypeName ? { result, subTypeName } : { result };
 }
 
 export function determineResult(
