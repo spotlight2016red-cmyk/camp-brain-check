@@ -71,7 +71,8 @@ export function BrainCheckClient() {
               <span className="text-[#FF9966]">事前簡易診断</span>
             </h1>
             <p className="text-gray-600 leading-relaxed text-left bg-white rounded-2xl p-6 shadow-md border-2 border-[#FFE5D0]">
-              合宿申込者向けの事前診断です。24問の回答から、あなたの考え方・反応・力が出やすい環境の傾向を仮で見える化します。
+              お申し込み確定後、LINEでお送りしたリンクからご利用ください。
+              24問の回答から、あなたの考え方・反応・力が出やすい環境の傾向を仮で見える化します。
             </p>
             <ul className="text-left text-gray-600 space-y-2 text-sm bg-white/60 rounded-xl p-5">
               <li>・6つの軸で集計（直感性・構造化・行動性・共感性・表現性・安定性）</li>
