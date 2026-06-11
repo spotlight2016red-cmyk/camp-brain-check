@@ -13,7 +13,7 @@ export const QUESTIONS: Question[] = [
   { id: 3, text: '考えすぎるより、まず小さく試してみる方が動きやすい。', axis: 'action' },
   { id: 4, text: '人の表情や空気の変化に気づきやすい。', axis: 'empathy' },
   { id: 5, text: '感じたことや考えたことを、言葉・絵・形にして表すと整理される。', axis: 'expression' },
-  { id: 6, text: '同じことを継続したり、一定のリズムを守ったりすることで力を発揮しやすい。', axis: 'stability' },
+  { id: 6, text: '自分に合ったルーティーンや生活リズムがあると、力を発揮しやすい。', axis: 'stability' },
   { id: 7, text: '細かい説明がなくても、「なんとなくこうなりそう」と流れを感じることがある。', axis: 'intuition' },
   { id: 8, text: '情報が散らかっていると、整理して見やすくしたくなる。', axis: 'structure' },
   { id: 9, text: '動きながら考える方が、自分らしい答えにたどり着きやすい。', axis: 'action' },

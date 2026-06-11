@@ -281,6 +281,10 @@ export function BrainCheckClient() {
                       content={result.fatiguePattern!}
                     />
                     <ResultBlock
+                      title="生活への活かし方"
+                      content={result.practicalUsage!}
+                    />
+                    <ResultBlock
                       title="合宿で深掘りしたいポイント"
                       content={result.deepDivePoint!}
                       highlight

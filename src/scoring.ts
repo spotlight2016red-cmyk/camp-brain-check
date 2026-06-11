@@ -144,6 +144,7 @@ function toDiagnosisResult(type: TypeResult): DiagnosisResult {
     description: type.description,
     strongEnvironment: type.strongEnvironment,
     fatiguePattern: type.fatiguePattern,
+    practicalUsage: type.practicalUsage,
     deepDivePoint: type.deepDivePoint,
     axes: type.axes,
     isUndetermined: false,

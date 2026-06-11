@@ -34,6 +34,7 @@ export interface DiagnosisResult {
   description: string;
   strongEnvironment?: string;
   fatiguePattern?: string;
+  practicalUsage?: string;
   deepDivePoint?: string;
   axes?: [AxisKey, AxisKey];
   isUndetermined: boolean;
