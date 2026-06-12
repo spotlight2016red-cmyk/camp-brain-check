@@ -40,10 +40,22 @@ export interface DiagnosisResult {
   isUndetermined: boolean;
 }
 
+export type PatternType = 'matched' | 'composite';
+
 export interface DiagnosisOutcome {
+  /** Q1〜Q18から算出 */
+  mainType: BrainTypeId;
+  /** Q19で本人が選択 */
+  subType: BrainTypeId;
+  mainTypeDescription: string;
+  subTypeDescription: string;
+  combinedDescription: string;
+  patternType: PatternType;
+  /** メインタイプの表示用データ */
   result: DiagnosisResult;
-  /** 決め手質問で選ばれたサブタイプ（メインと異なる場合のみ） */
-  subTypeName?: string;
+  subTypeName: string;
+  /** サブタイプの表示用データ */
+  subTypeResult: DiagnosisResult;
 }
 
 export type AxisScores = Record<AxisKey, number>;

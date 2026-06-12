@@ -1,50 +1,51 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Brain, ChevronDown } from 'lucide-react';
-import { QUESTIONS, ANSWER_LABELS } from './questions';
+import { MAIN_QUESTIONS, DIAGNOSIS_INTRO, TOTAL_QUESTIONS } from './questions';
 import { calculateAxisScores, determineOutcome, getMaxScorePerAxis } from './scoring';
 import { AXES, AXIS_ORDER } from './types';
 import { CAMP_LP_URL, LINE_URL } from './config';
 import { getAvatarImageUrl } from './avatarImages';
 import { getTypeCardImageUrl } from './typeCardImages';
-import { TIEBREAKER_OPTIONS, TIEBREAKER_QUESTION_TEXT } from './tiebreakerQuestion';
+import { SUB_TYPE_OPTIONS, SUB_TYPE_QUESTION_TEXT } from './subTypeQuestion';
 import type { BrainTypeId } from './types';
 
-type Step = 'intro' | 'quiz' | 'tiebreaker' | 'result';
-
-const TOTAL_STEPS = QUESTIONS.length + 1;
+type Step = 'intro' | 'quiz' | 'subtype' | 'result';
 
 export function BrainCheckClient() {
   const [step, setStep] = useState<Step>('intro');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [tiebreakerTypeId, setTiebreakerTypeId] = useState<BrainTypeId | null>(null);
+  const [subTypeId, setSubTypeId] = useState<BrainTypeId | null>(null);
 
-  const currentQuestion = QUESTIONS[currentIndex];
+  const currentQuestion = MAIN_QUESTIONS[currentIndex];
   const quizStep =
-    step === 'quiz' ? currentIndex + 1 : step === 'tiebreaker' ? QUESTIONS.length + 1 : TOTAL_STEPS;
-  const progress = (quizStep / TOTAL_STEPS) * 100;
+    step === 'quiz'
+      ? currentIndex + 1
+      : step === 'subtype'
+        ? MAIN_QUESTIONS.length + 1
+        : TOTAL_QUESTIONS;
+  const progress = (quizStep / TOTAL_QUESTIONS) * 100;
+
   const axisScores = calculateAxisScores(answers);
-  const { result, subTypeName } = determineOutcome(
-    axisScores,
-    answers,
-    tiebreakerTypeId ?? undefined,
-  );
+  const outcome =
+    subTypeId !== null ? determineOutcome(answers, subTypeId) : null;
+  const result = outcome?.result;
   const maxScore = getMaxScorePerAxis();
-  const typeCardUrl = getTypeCardImageUrl(result.id);
-  const avatarUrl = getAvatarImageUrl(result.id);
+  const typeCardUrl = result ? getTypeCardImageUrl(result.id) : null;
+  const avatarUrl = result ? getAvatarImageUrl(result.id) : null;
 
   const handleAnswer = (value: number) => {
     if (!currentQuestion) return;
     setAnswers({ ...answers, [currentQuestion.id]: value });
-    if (currentIndex < QUESTIONS.length - 1) {
+    if (currentIndex < MAIN_QUESTIONS.length - 1) {
       setCurrentIndex(currentIndex + 1);
     } else {
-      setStep('tiebreaker');
+      setStep('subtype');
     }
   };
 
-  const handleTiebreakerAnswer = (typeId: BrainTypeId) => {
-    setTiebreakerTypeId(typeId);
+  const handleSubTypeAnswer = (typeId: BrainTypeId) => {
+    setSubTypeId(typeId);
     setStep('result');
   };
 
@@ -52,7 +53,7 @@ export function BrainCheckClient() {
     setStep('intro');
     setCurrentIndex(0);
     setAnswers({});
-    setTiebreakerTypeId(null);
+    setSubTypeId(null);
   };
 
   return (
@@ -71,7 +72,7 @@ export function BrainCheckClient() {
             合宿前・簡易診断
           </div>
         </div>
-        {(step === 'quiz' || step === 'tiebreaker') && (
+        {(step === 'quiz' || step === 'subtype') && (
           <div className="h-1.5 bg-[#FFE5D0]">
             <div
               className="h-full bg-gradient-to-r from-[#FF9966] to-[#FFB366] transition-all duration-300"
@@ -85,7 +86,7 @@ export function BrainCheckClient() {
         {step === 'intro' && (
           <div className="text-center space-y-8">
             <div className="inline-flex items-center gap-2 bg-[#FFE5D0] px-4 py-2 rounded-full text-sm text-gray-700">
-              全24問+決め手1問・約5分・ログイン不要
+              全18問+1問・約5分・ログイン不要
             </div>
             <h1 className="text-3xl md:text-4xl text-gray-800 font-bold leading-tight">
               脳内アップデート合宿<br />
@@ -93,13 +94,11 @@ export function BrainCheckClient() {
             </h1>
             <p className="text-gray-600 leading-relaxed text-left bg-white rounded-2xl p-6 shadow-md border-2 border-[#FFE5D0]">
               合宿にお申し込みいただいた方向けの、合宿前の簡易診断です。
-              24問の回答から、あなたの考え方・反応・力が出やすい環境の傾向を仮で見える化します。
+              18問の回答と、最後の1問から、あなたの考え方・反応・力が出やすい環境の傾向を仮で見える化します。
             </p>
-            <ul className="text-left text-gray-600 space-y-2 text-sm bg-white/60 rounded-xl p-5">
-              <li>・6つの軸で集計（直感性・構造化・行動性・共感性・表現性・安定性）</li>
-              <li>・上位2軸から8タイプの仮判定</li>
-              <li>・タイプ別の初期アバターと説明を表示</li>
-            </ul>
+            <div className="text-left text-gray-600 leading-relaxed text-sm bg-white/80 rounded-2xl p-6 border-2 border-[#FFE5D0] whitespace-pre-line">
+              {DIAGNOSIS_INTRO}
+            </div>
             <button
               onClick={() => setStep('quiz')}
               className="bg-[#FF9966] hover:bg-[#FF8850] text-white px-10 py-4 rounded-full shadow-lg hover:shadow-xl transition-all inline-flex items-center gap-2 text-lg"
@@ -110,24 +109,26 @@ export function BrainCheckClient() {
           </div>
         )}
 
-        {step === 'tiebreaker' && (
+        {step === 'subtype' && (
           <div className="space-y-8">
             <p className="text-center text-sm text-[#FF9966] font-medium">
-              決め手の質問 / {TOTAL_STEPS}
+              質問 {TOTAL_QUESTIONS} / {TOTAL_QUESTIONS}
             </p>
             <h2 className="text-xl md:text-2xl text-gray-800 text-center leading-relaxed font-medium">
-              {TIEBREAKER_QUESTION_TEXT}
+              {SUB_TYPE_QUESTION_TEXT}
             </h2>
-            <p className="text-center text-sm text-gray-500">
-              6軸の結果が近いときの補助判定です。いま一番しっくりくるものを選んでください。
+            <p className="text-center text-sm text-gray-500 leading-relaxed">
+              ここでは、今の自分に一番近いと感じる要素を選んでください。
+              これは補助資質・サブ要因として、結果に一緒に記録されます。
             </p>
             <div className="space-y-3">
-              {TIEBREAKER_OPTIONS.map((option) => (
+              {SUB_TYPE_OPTIONS.map((option, index) => (
                 <button
                   key={option.typeId}
-                  onClick={() => handleTiebreakerAnswer(option.typeId)}
+                  onClick={() => handleSubTypeAnswer(option.typeId)}
                   className="w-full text-left p-4 rounded-2xl border-2 border-gray-100 bg-white hover:border-[#FFE5D0] hover:bg-[#FFF5EB] transition-all"
                 >
+                  <span className="text-[#FF9966] text-xs font-medium mr-2">{index + 1}.</span>
                   {option.label}
                 </button>
               ))}
@@ -144,13 +145,13 @@ export function BrainCheckClient() {
         {step === 'quiz' && currentQuestion && (
           <div className="space-y-8">
             <p className="text-center text-sm text-[#FF9966] font-medium">
-              質問 {currentIndex + 1} / {TOTAL_STEPS}
+              質問 {currentIndex + 1} / {TOTAL_QUESTIONS}
             </p>
             <h2 className="text-xl md:text-2xl text-gray-800 text-center leading-relaxed font-medium">
               {currentQuestion.text}
             </h2>
             <div className="space-y-3">
-              {ANSWER_LABELS.map((label, index) => (
+              {currentQuestion.options.map((label, index) => (
                 <button
                   key={label}
                   onClick={() => handleAnswer(index)}
@@ -175,14 +176,14 @@ export function BrainCheckClient() {
           </div>
         )}
 
-        {step === 'result' && (
+        {step === 'result' && outcome && result && (
           <div className="space-y-8" id="diagnosis-result">
             <section
               id="type-card-screenshot"
               className="bg-white rounded-3xl shadow-xl p-6 md:p-8 border-4 border-[#FFE5D0]"
             >
               <h2 className="text-xl md:text-2xl font-bold text-center text-gray-800 mb-6">
-                {result.isUndetermined ? 'あなたの診断結果' : 'あなたのタイプカード'}
+                あなたのタイプカード
               </h2>
               {typeCardUrl ? (
                 <img
@@ -194,8 +195,6 @@ export function BrainCheckClient() {
                 <div className="w-full max-w-lg mx-auto rounded-2xl border-2 border-dashed border-[#FFE5D0] bg-[#FFF5EB]/60 px-6 py-12 text-center">
                   <Brain className="w-12 h-12 text-[#FF9966] mx-auto mb-3" />
                   <p className="text-gray-700 text-sm leading-relaxed">
-                    今回は特定のタイプカードは表示されません。
-                    <br />
                     下の結果画面をスクショして保存してください。
                   </p>
                 </div>
@@ -221,8 +220,10 @@ export function BrainCheckClient() {
               </div>
             </section>
 
-            <section className="bg-white rounded-2xl p-5 border-2 border-[#FFE5D0] shadow-sm">
-              <p className="text-sm text-[#FF9966] font-medium text-center mb-4">あなたの仮タイプ</p>
+            <section className="bg-white rounded-2xl p-5 border-2 border-[#FFE5D0] shadow-sm space-y-5">
+              <p className="text-sm text-[#FF9966] font-medium text-center">
+                {outcome.patternType === 'matched' ? '一致型' : '複合型'}
+              </p>
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0 w-20 h-20 rounded-full overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.1)] ring-2 ring-[#FFE5D0]/60 bg-[#FFF5EB] flex items-center justify-center">
                   {avatarUrl ? (
@@ -235,31 +236,39 @@ export function BrainCheckClient() {
                     <Brain className="w-9 h-9 text-[#FF9966]" aria-hidden />
                   )}
                 </div>
-                <div className="min-w-0 text-left">
-                  {subTypeName ? (
-                    <div className="space-y-1">
-                      <p className="text-gray-800 leading-snug">
-                        <span className="text-gray-500 text-xs font-medium">メインタイプ：</span>
-                        <span className="font-bold">{result.typeName}</span>
-                      </p>
-                      <p className="text-gray-700 leading-snug">
-                        <span className="text-gray-500 text-xs font-medium">サブタイプ：</span>
-                        {subTypeName}
-                      </p>
-                      <p className="text-gray-500 text-xs leading-relaxed pt-1">
-                        サブ傾向は、すでに使えている補助的な力として表れる場合もあれば、これから育てたい願いとして表れる場合もあります。
-                      </p>
-                      <p className="text-gray-400 text-[11px] leading-relaxed">
-                        合宿では、このズレも手がかりにしながら、自分のクセをどう強みに変えていくかを深めていきます。
-                      </p>
-                    </div>
-                  ) : (
-                    <h2 className="text-lg font-bold text-gray-800 leading-snug">{result.typeName}</h2>
-                  )}
-                  <p className="text-[#FF9966] font-medium text-sm mt-0.5">{result.avatarName}</p>
-                  <p className="text-gray-600 text-sm leading-relaxed mt-2">{result.description}</p>
+                <div className="min-w-0 text-left space-y-3">
+                  <div>
+                    <p className="text-gray-500 text-xs font-medium mb-1">メインタイプ</p>
+                    <p className="text-lg font-bold text-gray-800 leading-snug">{result.typeName}</p>
+                    <p className="text-[#FF9966] font-medium text-sm mt-0.5">{result.avatarName}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 text-xs font-medium mb-1">サブタイプ</p>
+                    <p className="text-gray-800 font-medium leading-snug">{outcome.subTypeName}</p>
+                  </div>
                 </div>
               </div>
+
+              <ResultBlock title="メインタイプの説明" content={outcome.mainTypeDescription} />
+              <ResultBlock
+                title="サブタイプ（補助資質）"
+                subtitle="本人が選んだサブ要因として働く傾向"
+                content={outcome.subTypeDescription}
+              />
+              <ResultBlock
+                title="組み合わせの説明"
+                content={outcome.combinedDescription}
+                highlight
+              />
+              {outcome.patternType === 'matched' ? (
+                <p className="text-gray-500 text-xs leading-relaxed">
+                  メインタイプとサブタイプが重なっています。自分でもその資質をある程度自覚しており、自然に出やすい傾向として表れやすい状態です。次のテーマは「どう活かすか」「どこで使うか」です。
+                </p>
+              ) : (
+                <p className="text-gray-500 text-xs leading-relaxed">
+                  メインタイプは表に出やすい反応パターン、サブタイプは内側で自覚している補助資質です。どちらかが正しいというより、両方を組み合わせることで、あなたらしさが立体的に見えてきます。
+                </p>
+              )}
             </section>
 
             <details className="group bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
@@ -268,34 +277,22 @@ export function BrainCheckClient() {
                 <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform group-open:rotate-180" />
               </summary>
               <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
-                {!result.isUndetermined && (
-                  <>
-                    <ResultBlock
-                      title="力が出やすい環境"
-                      subtitle="こういう時に能力を発揮しやすい"
-                      content={result.strongEnvironment!}
-                    />
-                    <ResultBlock
-                      title="疲れやすいパターン"
-                      subtitle="こういう時に失敗しやすい"
-                      content={result.fatiguePattern!}
-                    />
-                    <ResultBlock
-                      title="生活への活かし方"
-                      content={result.practicalUsage!}
-                    />
-                    <ResultBlock
-                      title="合宿で深掘りしたいポイント"
-                      content={result.deepDivePoint!}
-                      highlight
-                    />
-                  </>
-                )}
-                {result.isUndetermined && (
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    今回はタイプの詳細説明は表示していません。6軸スコアを参考に、合宿で一緒に探っていきましょう。
-                  </p>
-                )}
+                <ResultBlock
+                  title="力が出やすい環境"
+                  subtitle="こういう時に能力を発揮しやすい"
+                  content={result.strongEnvironment!}
+                />
+                <ResultBlock
+                  title="疲れやすいパターン"
+                  subtitle="こういう時に失敗しやすい"
+                  content={result.fatiguePattern!}
+                />
+                <ResultBlock title="今後の活かし方" content={result.practicalUsage!} />
+                <ResultBlock
+                  title="合宿で深掘りしたいポイント"
+                  content={result.deepDivePoint!}
+                  highlight
+                />
                 <div className="rounded-2xl p-5 border-2 bg-white border-gray-100">
                   <h3 className="font-medium text-gray-800 mb-4">6軸スコア</h3>
                   <div className="space-y-4">
@@ -303,13 +300,15 @@ export function BrainCheckClient() {
                       <div key={key}>
                         <div className="flex justify-between text-sm mb-1">
                           <span>{AXES[key].label}</span>
-                          <span className="text-gray-500">{axisScores[key]} / {maxScore}</span>
+                          <span className="text-gray-500">
+                            {axisScores[key]} / {maxScore}
+                          </span>
                         </div>
                         <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full"
                             style={{
-                              width: `${(axisScores[key] / maxScore) * 100}%`,
+                              width: `${maxScore > 0 ? (axisScores[key] / maxScore) * 100 : 0}%`,
                               backgroundColor: AXES[key].color,
                             }}
                           />
@@ -361,13 +360,14 @@ function ResultBlock({
   return (
     <div
       className={`rounded-2xl p-5 border-2 ${
-        highlight ? 'bg-gradient-to-r from-[#FFF5EB] to-[#FFE5D0] border-[#FF9966]' : 'bg-white border-gray-100'
+        highlight
+          ? 'bg-gradient-to-r from-[#FFF5EB] to-[#FFE5D0] border-[#FF9966]'
+          : 'bg-white border-gray-100'
       }`}
     >
       <h3 className="font-medium text-gray-800">{title}</h3>
       {subtitle && <p className="text-xs text-[#FF9966] mt-1">{subtitle}</p>}
-      <p className="text-gray-600 text-sm leading-relaxed mt-2">{content}</p>
+      <p className="text-gray-600 text-sm leading-relaxed mt-2 whitespace-pre-line">{content}</p>
     </div>
   );
 }
-

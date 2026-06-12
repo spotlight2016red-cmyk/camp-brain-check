@@ -1,9 +1,9 @@
 import type { BrainTypeId } from './types';
 
-/** 決め手質問 Ver.1.1 */
-export const TIEBREAKER_QUESTION_TEXT = '最後に、今の自分に一番近いものを選ぶなら？';
+/** Q19：本人が選ぶサブタイプ／サブ要因 */
+export const SUB_TYPE_QUESTION_TEXT = '最後に、今の自分に一番近いものを選ぶなら？';
 
-export const TIEBREAKER_OPTIONS: { label: string; typeId: BrainTypeId }[] = [
+export const SUB_TYPE_OPTIONS: { label: string; typeId: BrainTypeId }[] = [
   {
     label: '感覚やひらめきを、言葉や形にして届けたい',
     typeId: 'intuition-expression',
